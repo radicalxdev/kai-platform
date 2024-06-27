@@ -17,4 +17,4 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KAI_AI_F63C8 }}
           channelId: live
-          projectId: kai-ai-f63c8
+          projectId: kai-project-history

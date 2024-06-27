@@ -9,8 +9,9 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const busboy = require('busboy');
 const app = express();
-
+const functions = require('firebase-functions');
 const DEBUG = process.env.DEBUG;
+
 /**
  * Simulates communication with a Kai AI endpoint.
  *
@@ -33,10 +34,9 @@ const kaiCommunicator = async (payload) => {
     DEBUG && logger.log('kaiCommunicator started, data:', payload.data);
 
     const { messages, user, tool_data, type } = payload.data;
-
     const isToolCommunicator = type === BOT_TYPE.TOOL;
-    const KAI_API_KEY = process.env.KAI_API_KEY;
-    const KAI_ENDPOINT = process.env.KAI_ENDPOINT;
+    const KAI_API_KEY = process.env.NEXT_PUBLIC_KAI_API_KEY;
+    const KAI_ENDPOINT = process.env.NEXT_PUBLIC_KAI_ENDPOINT;
 
     DEBUG &&
       logger.log(
@@ -253,8 +253,17 @@ app.post('/api/tool/', (req, res) => {
           },
         },
       });
-      DEBUG && logger.log(response);
-
+      logger.log('123131231231313132131');
+      // await createToolSession({
+      //   data: {
+      //     user: otherData.user,
+      //     tool_data: {
+      //       ...otherToolData,
+      //       inputs: modifiedInputs,
+      //     },
+      //     type: otherData.type,
+      //   },
+      // });
       res.status(200).json({ success: true, data: response.data });
     } catch (error) {
       logger.error('Error processing request:', error);
@@ -362,8 +371,114 @@ const createChatSession = onCall(async (props) => {
   }
 });
 
+const createToolSession = onCall(async (props) => {
+  try {
+    const { user, tool_data, type, messages, sessionId } = props.data;
+    if (!user || !tool_data || !type || !messages) {
+      logger.log('Missing required fields', props.data);
+      throw new HttpsError('invalid-argument', 'Missing required fields');
+    }
+
+    const toolSessionId = sessionId || uuidv4();
+    const initialToolData = {
+      ...tool_data,
+      timestamp: Timestamp.fromMillis(Date.now()),
+    };
+    const toolSessionRef = admin
+      .firestore()
+      .collection('toolSessions')
+      .doc(toolSessionId);
+    const toolSessionDoc = await toolSessionRef.get();
+    // // Create new tool session if it doesn't exist
+    // const toolSessionRef = await admin
+    //   .firestore()
+    //   .collection('toolSessions')
+    //   .add({
+    //     tool_data: [initialToolData],
+    //     user,
+    //     type,
+    //     messages,
+    //     createdAt: Timestamp.fromMillis(Date.now()),
+    //     updatedAt: Timestamp.fromMillis(Date.now()),
+    //   });
+    if (toolSessionDoc.exists) {
+      // Update the existing session by replacing the data
+      await toolSessionRef.update({
+        tool_data: [initialToolData],
+        user,
+        type,
+        messages,
+        updatedAt: Timestamp.fromMillis(Date.now()),
+      });
+    } else {
+      // Create a new session
+      await toolSessionRef.set({
+        tool_data: [initialToolData],
+        user,
+        type,
+        messages,
+        createdAt: Timestamp.fromMillis(Date.now()),
+        updatedAt: Timestamp.fromMillis(Date.now()),
+      });
+      logger.log('Created new tool session:', toolSessionId);
+    }
+
+    const updatedToolSession = await toolSessionRef.get();
+    const createdToolSession = {
+      ...updatedToolSession.data(),
+      id: updatedToolSession.id,
+    };
+
+    logger.log(
+      'Successfully created or updated tool session:',
+      createdToolSession
+    );
+    return {
+      status: 'created',
+      data: createdToolSession,
+    };
+  } catch (error) {
+    logger.error(error);
+    throw new HttpsError('internal', error.message);
+  }
+});
+
+const fetchUserHistoryData = onCall(async (props) => {
+  try {
+    const { userId } = props.data;
+
+    if (!userId) {
+      throw new HttpsError(
+        'invalid-argument',
+        'Missing required field: userId'
+      );
+    }
+
+    const historyCollection = admin.firestore().collection('toolSessions');
+    const snapshot = await historyCollection
+      .where('user.id', '==', userId)
+      .get();
+
+    if (snapshot.empty) {
+      return { data: [] };
+    }
+
+    const historyData = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    return { data: historyData };
+  } catch (error) {
+    functions.logger.error('Error fetching history data:', error);
+    throw new HttpsError('internal', error.message);
+  }
+});
+
 module.exports = {
   chat,
   tool: https.onRequest(app),
   createChatSession,
+  createToolSession,
+  fetchUserHistoryData,
 };

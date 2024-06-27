@@ -38,6 +38,9 @@ const tools = createSlice({
     setResponse: (state, action) => {
       state.response = action.payload;
     },
+    setError: (state, action) => {
+      state.error = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -61,6 +64,7 @@ export const {
   setPrompt,
   setResponse,
   setFormOpen,
+  setError,
   resetCommunicator,
 } = tools.actions;
 

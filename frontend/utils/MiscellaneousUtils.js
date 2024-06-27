@@ -198,6 +198,21 @@ const getRandomBackgroundColor = () => {
   return getRandomColor();
 };
 
+/**
+ * Truncates a string to a specified length and adds an optional suffix.
+ *
+ * @param {string} str - The string to truncate.
+ * @param {number} num - The maximum length of the truncated string.
+ * @param {string} [suffix='...'] - The suffix to append to the truncated string.
+ * @return {string} The truncated string with the suffix.
+ */
+function truncateString(str, num, suffix = '...') {
+  if (str.length <= num) {
+    return str;
+  }
+  return str.slice(0, num - suffix.length) + suffix;
+}
+
 export {
   toBase64,
   shimmerEffect,
@@ -207,4 +222,5 @@ export {
   getRandomRadialGradient,
   getRandomBackgroundColor,
   disableScroll,
+  truncateString,
 };

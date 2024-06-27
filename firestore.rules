@@ -1,9 +1,23 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if
-          request.time < timestamp.date(2023, 6, 16);
+    match /users/{userId} {
+      allow read: if true; // Allow all read operations
+      allow write: if request.auth.uid != null; // Allow write if user is authenticated
+    }
+    
+    match /chatSessions/{sessionId} {
+      allow read, write: if true; // Example rule allowing all read and write operations
+      // Adjust read and write rules as per your application's needs
+    }
+
+    match /tools/{toolId} {
+      allow read, write: if true; // Example rule allowing all read and write operations for tools
+      // Adjust read and write rules as per your application's needs
+    }
+    match /toolSessions/{sessionId} {
+      allow read: if request.auth != null; // Allow read if user is authenticated
+      allow write: if request.auth != null; // Allow write if user is authenticated
     }
   }
 }
