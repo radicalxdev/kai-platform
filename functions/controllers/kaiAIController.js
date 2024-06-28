@@ -35,8 +35,8 @@ const kaiCommunicator = async (payload) => {
     const { messages, user, tool_data, type } = payload.data;
 
     const isToolCommunicator = type === BOT_TYPE.TOOL;
-    const KAI_API_KEY = process.env.KAI_API_KEY;
-    const KAI_ENDPOINT = process.env.KAI_ENDPOINT;
+    const KAI_API_KEY = 'AIzaSyBT0cxIrvcSUL8Ylfmrt8gra9BYb_K20kE';
+    const KAI_ENDPOINT = 'https://kai-ai-f63c8.wl.r.appspot.com/submit-tool';
 
     DEBUG &&
       logger.log(
@@ -255,6 +255,15 @@ app.post('/api/tool/', (req, res) => {
       });
       DEBUG && logger.log(response);
 
+      const topicInput = modifiedInputs.find((input) => input.name === 'topic');
+      const topic = topicInput ? topicInput.value : null;
+
+      await saveResponseToFirestore({
+        response: response.data.data,
+        tool_id: otherToolData.tool_id,
+        topic: topic,
+      });
+
       res.status(200).json({ success: true, data: response.data });
     } catch (error) {
       logger.error('Error processing request:', error);
@@ -264,6 +273,25 @@ app.post('/api/tool/', (req, res) => {
 
   bb.end(req.rawBody);
 });
+/**
+ * Save the tool session response to Firestore
+ * @param {object} sessionData - The data to be saved to Firestore
+ */
+const saveResponseToFirestore = async (sessionData) => {
+  try {
+    const toolSessionRef = await admin
+      .firestore()
+      .collection('toolSessions')
+      .add({
+        ...sessionData,
+        createdAt: Timestamp.fromMillis(Date.now()),
+      });
+
+    logger.log(`Tool session saved with ID: ${toolSessionRef.id}`);
+  } catch (error) {
+    logger.error('Error saving tool session to Firestore:', error);
+  }
+};
 
 /**
  * This creates a chat session for a user.
