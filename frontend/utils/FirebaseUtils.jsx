@@ -27,4 +27,13 @@ const convertToUnixTimestamp = (date) => {
   return unixTimestamp;
 };
 
+/**
+ * Renders a history tool container component based on the provided category and time data.
+ *
+ * @param {string} category - The category label for the history container.
+ * @param {Array} timeData - The data array to be displayed within the container.
+ * @param {boolean} loading - Indicates if data is currently being loaded.
+ * @returns {JSX.Element|null} Returns the rendered HistoryListingContainer or null if timeData is empty.
+ */
+
 export { parseFirebaseText, convertToUnixTimestamp };

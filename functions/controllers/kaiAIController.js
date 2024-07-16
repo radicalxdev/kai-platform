@@ -11,6 +11,7 @@ const busboy = require('busboy');
 const app = express();
 
 const DEBUG = process.env.DEBUG;
+
 /**
  * Simulates communication with a Kai AI endpoint.
  *
@@ -33,10 +34,9 @@ const kaiCommunicator = async (payload) => {
     DEBUG && logger.log('kaiCommunicator started, data:', payload.data);
 
     const { messages, user, tool_data, type } = payload.data;
-
     const isToolCommunicator = type === BOT_TYPE.TOOL;
-    const KAI_API_KEY = process.env.KAI_API_KEY;
-    const KAI_ENDPOINT = process.env.KAI_ENDPOINT;
+    const KAI_API_KEY = process.env.NEXT_PUBLIC_KAI_API_KEY;
+    const KAI_ENDPOINT = process.env.NEXT_PUBLIC_KAI_ENDPOINT;
 
     DEBUG &&
       logger.log(
@@ -253,8 +253,6 @@ app.post('/api/tool/', (req, res) => {
           },
         },
       });
-      DEBUG && logger.log(response);
-
       res.status(200).json({ success: true, data: response.data });
     } catch (error) {
       logger.error('Error processing request:', error);
@@ -362,8 +360,85 @@ const createChatSession = onCall(async (props) => {
   }
 });
 
+const createToolSession = onCall(async (props) => {
+  try {
+    const { user, tool_data, type, outputs, sessionId } = props.data;
+    if (!user || !tool_data || !type || !outputs) {
+      logger.log('Missing required fields', props.data);
+      throw new HttpsError('invalid-argument', 'Missing required fields');
+    }
+
+    const initialToolData = {
+      ...tool_data,
+      timestamp: Timestamp.fromMillis(Date.now()),
+    };
+    let toolSessionRef;
+    let toolSessionId;
+
+    if (sessionId) {
+      toolSessionRef = admin
+        .firestore()
+        .collection('toolSessions')
+        .doc(sessionId);
+      const toolSessionDoc = await toolSessionRef.get();
+      if (toolSessionDoc.exists) {
+        // Update the existing session by replacing the data
+        await toolSessionRef.update({
+          tool_data: [initialToolData],
+          user,
+          type,
+          outputs,
+          updatedAt: Timestamp.fromMillis(Date.now()),
+        });
+      } else {
+        throw new HttpsError('not-found', 'Session ID does not exist');
+      }
+    } else {
+      // Create a new session
+      toolSessionRef = await admin
+        .firestore()
+        .collection('toolSessions')
+        .add({
+          tool_data: [initialToolData],
+          user,
+          type,
+          outputs,
+          createdAt: Timestamp.fromMillis(Date.now()),
+          updatedAt: Timestamp.fromMillis(Date.now()),
+        });
+      toolSessionId = toolSessionRef.id;
+
+      // Update the document to include its ID
+      await toolSessionRef.update({
+        id: toolSessionId,
+      });
+
+      logger.log('Created new tool session:', toolSessionId);
+    }
+
+    const updatedToolSession = await toolSessionRef.get();
+    const createdToolSession = {
+      ...updatedToolSession.data(),
+      id: updatedToolSession.id,
+    };
+
+    logger.log(
+      'Successfully created or updated tool session:',
+      createdToolSession
+    );
+    return {
+      status: 'created',
+      data: createdToolSession,
+    };
+  } catch (error) {
+    logger.error(error);
+    throw new HttpsError('internal', error.message);
+  }
+});
+
 module.exports = {
   chat,
   tool: https.onRequest(app),
   createChatSession,
+  createToolSession,
 };

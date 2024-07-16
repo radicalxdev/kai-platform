@@ -13,7 +13,7 @@ import ArrowBack from '@/assets/svg/purple-arrow-back.svg';
 
 import ROUTES from '@/constants/routes';
 
-import TOOLS_ID from '@/constants/tools';
+import { TOOLS_ID } from '@/constants/tools';
 
 import FlashCardList from './FlashCardList';
 import MultipleChoiceResponse from './MultipleChoiceResponse';
