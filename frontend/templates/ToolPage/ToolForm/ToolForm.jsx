@@ -24,6 +24,8 @@ import {
   setPrompt,
   setResponse,
 } from '@/redux/slices/toolsSlice';
+import { firestore } from '@/redux/store';
+import { fetchToolHistory } from '@/redux/thunks/toolHistory';
 import submitPrompt from '@/services/tools/submitPrompt';
 
 const ToolForm = (props) => {
@@ -31,17 +33,14 @@ const ToolForm = (props) => {
   const theme = useTheme();
   const dispatch = useDispatch();
   const { handleOpenSnackBar } = useContext(AuthContext);
-
   const { communicatorLoading } = useSelector((state) => state.tools);
   const { data: userData } = useSelector((state) => state.user);
-
   const { register, control, handleSubmit, getValues, setValue, errors } =
     useWatchFields([]);
 
   const handleSubmitMultiForm = async (values) => {
     try {
       const { files, ...toolData } = values;
-
       dispatch(setResponse(null));
 
       const updateData = Object.entries(toolData).map(([name, value]) => ({
@@ -67,6 +66,7 @@ const ToolForm = (props) => {
       dispatch(setResponse(response?.data));
       dispatch(setFormOpen(false));
       dispatch(setCommunicatorLoading(false));
+      dispatch(fetchToolHistory({ firestore }));
     } catch (error) {
       dispatch(setCommunicatorLoading(false));
       handleOpenSnackBar(
@@ -78,20 +78,18 @@ const ToolForm = (props) => {
 
   const renderTextInput = (inputProps) => {
     const { name: inputName, placeholder, tooltip, label } = inputProps;
-    const renderLabel = () => {
-      return (
-        <Grid {...styles.textFieldLabelGridProps}>
-          <Typography {...styles.labelProps(errors?.[inputName])}>
-            {label}
-          </Typography>
-          {tooltip && (
-            <Tooltip placement="top" title={tooltip} sx={{ ml: 1 }}>
-              <Help />
-            </Tooltip>
-          )}
-        </Grid>
-      );
-    };
+    const renderLabel = () => (
+      <Grid {...styles.textFieldLabelGridProps}>
+        <Typography {...styles.labelProps(errors?.[inputName])}>
+          {label}
+        </Typography>
+        {tooltip && (
+          <Tooltip placement="top" title={tooltip} sx={{ ml: 1 }}>
+            <Help />
+          </Tooltip>
+        )}
+      </Grid>
+    );
 
     return (
       <Grid key={inputName} {...styles.inputGridProps}>
@@ -115,15 +113,13 @@ const ToolForm = (props) => {
   const renderSelectorInput = (inputProps) => {
     const { name: inputName, label, placeholder, max = 10 } = inputProps;
 
-    const renderLabel = () => {
-      return (
-        <Grid {...styles.labelGridProps}>
-          <Typography {...styles.labelProps(errors?.[inputName])}>
-            {label}
-          </Typography>
-        </Grid>
-      );
-    };
+    const renderLabel = () => (
+      <Grid {...styles.labelGridProps}>
+        <Typography {...styles.labelProps(errors?.[inputName])}>
+          {label}
+        </Typography>
+      </Grid>
+    );
 
     return (
       <Grid key={inputName} {...styles.inputGridProps}>
@@ -136,9 +132,10 @@ const ToolForm = (props) => {
           bgColor="#ffffff"
           placeholder={placeholder}
           error={errors?.[inputName]}
-          menuList={new Array(max)
-            .fill()
-            ?.map((item, index) => ({ id: index + 1, label: index + 1 }))}
+          menuList={new Array(max).fill()?.map((item, index) => ({
+            id: index + 1,
+            label: index + 1,
+          }))}
           helperText={errors?.[inputName]?.message}
           control={control}
           ref={register}
@@ -187,23 +184,21 @@ const ToolForm = (props) => {
     );
   };
 
-  const renderActionButtons = () => {
-    return (
-      <Grid mt={4} {...styles.actionButtonGridProps}>
-        <GradientOutlinedButton
-          id="submitButton"
-          bgcolor={theme.palette.Common.White['100p']}
-          text="Generate"
-          textColor={theme.palette.Common.White['100p']}
-          loading={communicatorLoading}
-          onHoverTextColor={theme.palette.Background.purple}
-          type="submit"
-          inverted
-          {...styles.submitButtonProps}
-        />
-      </Grid>
-    );
-  };
+  const renderActionButtons = () => (
+    <Grid mt={4} {...styles.actionButtonGridProps}>
+      <GradientOutlinedButton
+        id="submitButton"
+        bgcolor={theme.palette.Common.White['100p']}
+        text="Generate"
+        textColor={theme.palette.Common.White['100p']}
+        loading={communicatorLoading}
+        onHoverTextColor={theme.palette.Background.purple}
+        type="submit"
+        inverted
+        {...styles.submitButtonProps}
+      />
+    </Grid>
+  );
 
   const renderInput = (inputProps) => {
     switch (inputProps?.type) {
@@ -234,4 +229,5 @@ const ToolForm = (props) => {
     </FormContainer>
   );
 };
+
 export default ToolForm;

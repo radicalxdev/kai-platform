@@ -255,6 +255,16 @@ app.post('/api/tool/', (req, res) => {
       });
       DEBUG && logger.log(response);
 
+      const topicInput = modifiedInputs.find((input) => input.name === 'topic');
+      const topic = topicInput ? topicInput.value : null;
+
+      await saveResponseToFirestore({
+        response: response.data.data,
+        tool_id: otherToolData.tool_id,
+        topic,
+        userID: otherData.user.id,
+      });
+
       res.status(200).json({ success: true, data: response.data });
     } catch (error) {
       logger.error('Error processing request:', error);
@@ -264,6 +274,27 @@ app.post('/api/tool/', (req, res) => {
 
   bb.end(req.rawBody);
 });
+/**
+ * Save the tool session response to Firestore
+ * @param {object} sessionData - The data to be saved to Firestore
+ * @param {string} userId - The ID of the user
+ */
+const saveResponseToFirestore = async (sessionData) => {
+  try {
+    const toolSessionRef = await admin
+      .firestore()
+      .collection('toolSessions')
+      .add({
+        ...sessionData,
+        createdAt: Timestamp.fromMillis(Date.now()),
+      });
+    if (DEBUG) {
+      logger.log(`Tool session saved with ID: ${toolSessionRef.id}`);
+    }
+  } catch (error) {
+    logger.error('Error saving tool session to Firestore:', error);
+  }
+};
 
 /**
  * This creates a chat session for a user.

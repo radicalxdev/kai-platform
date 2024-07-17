@@ -3,9 +3,9 @@ import { Grid, Skeleton } from '@mui/material';
 import styles from './styles';
 
 /**
- * Renders a skeleton loader for a tool card.
- *
- * @returns {JSX.Element} The ToolCardSkeleton component.
+ * Renders a skeleton loading component for the tool history card.
+ * Uses a Grid component with specified properties and a Skeleton component with customized styling.
+ * @returns {JSX.Element} React element representing the tool card skeleton.
  */
 const ToolCardSkeleton = () => {
   return (

@@ -1,3 +1,4 @@
+import HistoryIcon from '@mui/icons-material/History';
 import { Grid, MenuItem } from '@mui/material';
 import { useRouter } from 'next/router';
 
@@ -23,6 +24,12 @@ const PAGES = [
     icon: <ChatBubble />,
     id: 'page_2',
   },
+  {
+    name: 'History',
+    link: ROUTES.HISTORY,
+    icon: <HistoryIcon />,
+    id: 'page_3',
+  },
 ];
 
 /**
@@ -35,12 +42,20 @@ const NavMenu = () => {
   const { pathname } = router;
 
   const setActive = (id) => {
-    const isNotHomePage = [chatRegex.test(pathname)].includes(true);
-
-    if (id === 'page_1')
-      return isNotHomePage ? false : homeRegex.test(pathname);
-
-    return chatRegex.test(pathname);
+    if (id === 'page_1') {
+      return (
+        homeRegex.test(pathname) &&
+        !chatRegex.test(pathname) &&
+        pathname !== ROUTES.HISTORY
+      );
+    }
+    if (id === 'page_2') {
+      return chatRegex.test(pathname);
+    }
+    if (id === 'page_3') {
+      return pathname === ROUTES.HISTORY;
+    }
+    return false;
   };
 
   const handleRoute = (link, id) => {
