@@ -1,5 +1,5 @@
 # Kai AI Platform
-Kai is an open source project by Radical having chatbot and smart tools for teachers.
+Kai is an open-source project by Radical having chatbot and smart tools for teachers.
 
 ## Table of Contents
 

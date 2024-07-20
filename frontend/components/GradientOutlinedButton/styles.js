@@ -18,14 +18,14 @@ const styles = {
       background: () => {
         if (disabled || loading) return theme.palette.Greyscale[650];
         if (inverted) return 'transparent';
-        return theme.palette.Background.gradient[color];
+        return 'linear-gradient(90deg, #856AFF 0%, #6D4DFF 100%)';
       },
       ...(!disableHover && {
         '&:hover': {
           ...(inverted && {
             background: () => {
               if (disabled || loading) return theme.palette.Greyscale[650];
-              return theme.palette.Background.gradient[color];
+              return 'linear-gradient(90deg, #856AFF 0%, #6D4DFF 100%)';
             },
           }),
         },
@@ -65,7 +65,7 @@ const styles = {
           background:
             disabled || loading
               ? theme.palette.Greyscale[650]
-              : theme.palette.Background.gradient[color],
+              : 'linear-gradient(90deg, #856AFF 0%, #6D4DFF 100%)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor:
             active || disabled || loading ? 'white' : 'transparent',
@@ -95,7 +95,7 @@ const styles = {
                 onHoverTextColor || theme.palette.Common.White['100p'],
             }),
             ...(inverted && {
-              background: theme.palette.Background.gradient[color],
+              background: 'linear-gradient(90deg, #856AFF 0%, #6D4DFF 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: active ? 'white' : 'transparent',
             }),
@@ -103,11 +103,11 @@ const styles = {
           svg: {
             color: !inverted
               ? onHoverTextColor
-              : theme.palette.Background.gradient[color],
+              : 'linear-gradient(90deg, #856AFF 0%, #6D4DFF 100%)',
             path: {
               stroke: !inverted
                 ? onHoverTextColor
-                : theme.palette.Background.gradient[color],
+                : 'linear-gradient(90deg, #856AFF 0%, #6D4DFF 100%)',
             },
           },
         }),

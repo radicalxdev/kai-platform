@@ -18,5 +18,8 @@
   },
   "devDependencies": {
     "firebase-tools": "^9.10.0"
+  },
+  "dependencies": {
+    "react-router-dom": "^6.25.1"
   }
 }
