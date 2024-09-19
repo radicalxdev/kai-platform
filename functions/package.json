@@ -21,7 +21,7 @@
   "main": "index.js",
   "dependencies": {
     "@octokit/rest": "^19.0.13",
-    "axios": "^1.4.0",
+    "axios": "^1.7.3",
     "busboy": "^1.6.0",
     "dotenv": "^16.4.5",
     "express": "^4.17.1",
