@@ -24,7 +24,7 @@
     "axios": "^1.4.0",
     "busboy": "^1.6.0",
     "dotenv": "^16.4.5",
-    "express": "^4.17.1",
+    "express": "^4.21.0",
     "firebase-admin": "^11.9.0",
     "firebase-functions": "^4.5.0",
     "moment": "^2.29.4",
